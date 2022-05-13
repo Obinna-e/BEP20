@@ -1,6 +1,6 @@
 const { assert } = require("chai");
 
-const Ownable = artifacts.require("Ownable");
+const Ownable = artifacts.require("DevToken");
 
 //Start a test series named Ownable, it will use 10 test accoounts
 contract("Ownable", async accounts => {
@@ -25,5 +25,10 @@ contract("Ownable", async accounts => {
         ownable = await Ownable.deployed();
 
         //renounce from accounts 1 as it is the new owner
-    })
-})
+        await ownable.renounceOwnership({ from: accounts[1]});
+
+        let owner = await ownable.owner();
+
+        assert.equal(owner, '0x0000000000000000000000000000000000000000', 'Renouncing owner was not correctly done')
+    });
+});

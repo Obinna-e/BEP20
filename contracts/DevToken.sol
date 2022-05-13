@@ -1,7 +1,9 @@
 // SPDX-License-Identifier: MIT
 pragma solidity ^0.8.4;
 
-contract DevToken {
+import "./Ownable.sol";
+
+contract DevToken is Ownable{
 
   uint private _totalSupply;
   uint8 private _decimals;
