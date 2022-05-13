@@ -104,13 +104,13 @@ contract DevToken is Ownable{
   *
    */
 
-   function burn(address account, uint256 amount) public returns(bool) {
+   function burn(address account, uint256 amount) public onlyOwner returns(bool) {
      _burn(account, amount);
      return true;
 
    }
 
-  function mint(address account, uint256 amount) public returns(bool) {
+  function mint(address account, uint256 amount) public onlyOwner returns(bool) {
     _mint(account, amount);
     return true;
   }
@@ -153,6 +153,104 @@ function _transfer(address sender, address recipient, uint256 amount) internal {
 
   emit Transfer(sender, recipient, amount);
  }
+
+ /**
+ * @notice _allowances is used to manage and control allowance
+ * An allowance is the right to use another accounts balance, or part of it
+  */
+
+  mapping (address => mapping (address => uint256)) private _allowances;
+
+  /**
+  * @notice Approval is emitted when a new Spender is approved to spend Tokens on 
+  * the Owners account
+   */
+
+   event Approval(address indexed owner, address indexed spender, uint256 value);
+
+   /** 
+   * @notice getOwner just calls Ownables owner function.
+   * returns owner od the token
+   *
+    */
+    function getOwner() external view returns (address) {
+      return owner();
+    }
+
+    /**
+    * @notice allowance is used view how much allowance a spender has
+     */
+     function allowance(address owner, address spender) external view returns(uint256) {
+       return _allowances[owner][spender];
+     }
+
+    /**
+    * @notice approve will use the senders address and allow the spender to use X amountof tokens on his behalf
+     */
+     function approve(address spender, uint256 amount) external returns (bool) {
+       _approve(msg.sender, spender, amount);
+       return true;
+     }
+
+     /**
+     * @notice _approve is used to add a new Spender to an Owners account
+     * 
+     * Events 
+     * - {Approval}
+     *
+     * Requires
+     * - owner and spender cannot be zero address
+      */
+      function _approve(address owner, address spender, uint256 amount) internal {
+        require( owner != address(0), "DevToken: apprive cannot be done from zero address" );
+        require(spender != address(0), "DevToken: approve cannot be done to zero address");
+        //Set the allowance of the spender address at the Owner mapping over accounts to the amount
+        _allowances[owner][spender] = amount;
+
+        emit Approval(owner, spender, amount);
+      }
+
+      /**
+      * @notice transferFrom is used to transfer Tokens from an Accounts allowance
+      * Spender address should be the token holder
+      * 
+      * Requires
+      * - The caller must have an allowance = or bigger than the amount spending
+       */
+       function transferFrom(address spender, address recipient, uint256 amount) external returns(bool) {
+         //Make sure spender is allowed the amount
+         require(_allowances[spender][msg.sender] >= amount, "DevToken: You cannot spend that much on this account");
+         //Transfer first
+         _transfer(spender, recipient, amount);
+         //Reduce current allowance so a user cannot respend
+         _approve(spender, msg.sender, _allowances[spender][msg.sender] - amount);
+         return true;
+       }
+      /**
+      *@notice increaseAllowance
+      *Adds allowance to an account from the function caller address
+      */
+      function increaseAllowance(address spender, uint256 amount) public returns (bool){
+        _approve(msg.sender, spender, _allowances[msg.sender][spender] + amount);
+        return true;
+      }
+
+      /**
+      * @notice decreaseAllowance
+      *Decrease the allowance on the account inputted from the caller address
+       */
+       function decreaseAllowance(address spender, uint256 amount) public returns (bool) {
+         _approve(msg.sender, spender, _allowances[msg.sender][spender] - amount);
+         return true;
+       }
+
+       
+
+
+
+
+
+
 
  
 
